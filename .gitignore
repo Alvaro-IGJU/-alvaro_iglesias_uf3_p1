@@ -2,3 +2,7 @@
 /.fleet
 /.idea
 /.vscode
+/node_modules
+/storage
+/bootstrap/cache
+/public/storage
