@@ -20,15 +20,16 @@ box-shadow: inset 0 20px 70px rgba(0, 0, 0, 0.9);
     style="color: white; font-family: 'Gill Sans', 'Gill Sans MT', Calii, 'Trebuchet MS', sans-serif; font-weight: bold; margin-left: 11%">
     {{ $title }}</h1>
 
-@if (empty($films))
+@if (empty($actors))
     <FONT COLOR="red">No se ha encontrado ninguna película</FONT>
 @else
     <div align="center">
-        <table border="1x solid" style=" border-collapse: collapse;
+        <table border="1x solid"
+            style=" border-collapse: collapse;
             width: 50%;  background-color: rgba(34, 34, 34, 0.767); color: white; font-family: 'Gill Sans', 'Gill Sans MT', Calii, 'Trebuchet MS', sans-serif;  ">
             <tr>
-                @foreach ($films as $film)
-                    @foreach (array_keys($film) as $key)
+                @foreach ($actors as $actor)
+                    @foreach (array_keys($actor) as $key)
                         <th style=" padding: 8px;
   text-align: left;
   border: 3px solid #ddd;">
@@ -38,25 +39,23 @@ box-shadow: inset 0 20px 70px rgba(0, 0, 0, 0.9);
             @endforeach
         </tr>
 
-        @foreach ($films as $film)
+        @foreach ($actors as $actor)
             <tr>
                 <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;">
-                    {{ $film['name'] }}
+                    {{ $actor['name'] }}
                 </td>
                 <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;">
-                    {{ $film['year'] }}
+                    {{ $actor['surname'] }}
                 </td>
                 <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;">
-                    {{ $film['genre'] }}
+                    {{ $actor['birthdate'] }}
                 </td>
                 <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;">
-                    {{ $film['country'] }}
+                    {{ $actor['country'] }}
                 </td>
-                <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;">
-                    {{ $film['duration'] }}
-                </td>
-                <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;"><img
-                        src={{ $film['img_url'] }} style="width: 100px; height: 120px;" /></td>
+              
+                <td style=" padding: 8px;text-align: left;border: 3px solid #ddd;"><img src={{ $actor['img_url'] }}
+                        style="width: 100px; height: 120px;" /></td>
 
             </tr>
         @endforeach

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
-class FilmController extends Controller
+class ActorController extends Controller
 {
     /**
      * Read films from storage
@@ -16,10 +16,9 @@ class FilmController extends Controller
     public function readActors()
     {
         // Utilizamos el Query Builder para realizar la consulta
-        $actors = DB::table('actors')->select( 'name', 'surname', 'birthdate', 'country', 'img_url')->get();
-
+        $actors = DB::table('actors')->select('name', 'surname', 'birthdate', 'country', 'img_url')->get();
         // Retornamos los resultados
-        return response()->json($actors);
+        return json_decode(json_encode($actors), true);
     }
 
 
@@ -61,7 +60,7 @@ class FilmController extends Controller
             $year = 2000;
 
         $title = "List of New Movies (After $year)";
-        $films = FilmController::readFilms();
+        $films = ActorController::readFilms();
 
         foreach ($films as $film) {
             if ($film['year'] >= $year)
@@ -79,29 +78,25 @@ class FilmController extends Controller
      * @param string|null $genre
      * @return \Illuminate\Contracts\View\View
      */
-    public function listFilms($year = null, $genre = null)
+    public function listActors()
     {
-        $films_filtered = [];
 
-        $title = "List of All Movies";
-        $films = FilmController::readFilms();
+        $title = "List of All Actors";
+        $actors = ActorController::readActors();
 
-        if (is_null($year) && is_null($genre))
-            return view('films.list', ["films" => $films, "title" => $title]);
+        return view("actors.list", ["actors" => $actors, "title" => $title]);
+    }
 
-        foreach ($films as $film) {
-            if ((!is_null($year) && is_null($genre)) && $film['year'] == $year) {
-                $title = "List of All Movies Filtered by Year";
-                $films_filtered[] = $film;
-            } else if ((is_null($year) && !is_null($genre)) && strtolower($film['genre']) == strtolower($genre)) {
-                $title = "List of All Movies Filtered by Category";
-                $films_filtered[] = $film;
-            } else if (!is_null($year) && !is_null($genre) && strtolower($film['genre']) == strtolower($genre) && $film['year'] == $year) {
-                $title = "List of All Movies Filtered by Category and Year";
-                $films_filtered[] = $film;
-            }
-        }
-        return view("films.list", ["films" => $films_filtered, "title" => $title]);
+    public function listActorsByDecade(Request $request)
+    {
+        $year = $request->input('year');
+        $endYear = $year +9;
+        $title = "List of All Actors";
+        $actors = DB::table('actors')->select('name', 'surname', 'birthdate', 'country', 'img_url')
+        ->whereBetween("birthdate", [$year . '-01-01', ($endYear) . '-12-31'])
+        ->get();
+        $actors = json_decode(json_encode($actors), true);
+        return view("actors.list", ["actors" => $actors, "title" => $title]);
     }
 
     /**
@@ -223,12 +218,12 @@ class FilmController extends Controller
             'duration' => $request->input('duration'),
             'img_url' => $request->input('img_url'),
         ];
-        
+
         if ($this->isFilm($filmUser)) {
             return view('welcome', ["error" => "Movie already exists"]);
         } else {
             $films[] = $filmUser;
-            Storage::put("/public/films.json",json_encode($films));
+            Storage::put("/public/films.json", json_encode($films));
             $films = FilmController::readFilms();
             return view('films.list', ["films" => $films, "title" => $title]);
         }
