@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class FilmController extends Controller
 {
@@ -14,7 +15,15 @@ class FilmController extends Controller
      */
     public static function readFilms(): array
     {
-        $films = Storage::json('/public/films.json');
+        // Leer las películas desde la base de datos
+        $films_bdd = DB::table('films')->select('name', 'year', 'genre', 'country', 'duration', 'img_url')->get()->toArray();
+        $films_bdd = json_decode(json_encode($films_bdd), true);
+        // Leer las películas desde el archivo JSON
+        $films_json = json_decode(Storage::get('/public/films.json'), true);
+
+        // Combinar los datos de ambas fuentes
+        $films = array_merge($films_bdd, $films_json);
+
         return $films;
     }
 
@@ -207,8 +216,12 @@ class FilmController extends Controller
      */
     public function createFilm(Request $request)
     {
+        $dataSource = env('DATA_SOURCE', 'database');
+
         $title = "All Movies";
-        $films = FilmController::readFilms();
+
+        $films = $this->readFilms();
+
         $filmUser = [
             'name' => $request->input('name'),
             'year' => $request->input('year'),
@@ -217,13 +230,19 @@ class FilmController extends Controller
             'duration' => $request->input('duration'),
             'img_url' => $request->input('img_url'),
         ];
-        
+
         if ($this->isFilm($filmUser)) {
             return view('welcome', ["error" => "Movie already exists"]);
         } else {
-            $films[] = $filmUser;
-            Storage::put("/public/films.json",json_encode($films));
-            $films = FilmController::readFilms();
+            if ($dataSource === 'json') {
+                $films[] = $filmUser;
+                Storage::put("/public/films.json", json_encode($films));
+            } else {
+                DB::table('films')->insert($filmUser);
+            }
+
+            $films = $this->readFilms();
+
             return view('films.list', ["films" => $films, "title" => $title]);
         }
     }
