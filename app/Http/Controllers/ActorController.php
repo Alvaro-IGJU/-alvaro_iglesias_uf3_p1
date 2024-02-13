@@ -23,51 +23,6 @@ class ActorController extends Controller
 
 
 
-    /**
-     * List films older than input year 
-     * If year is not informed, 2000 will be used as the criteria
-     *
-     * @param int|null $year
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function listOldFilms($year = null)
-    {
-        $old_films = [];
-        if (is_null($year))
-            $year = 2000;
-
-        $title = "List of Old Movies (Before $year)";
-        $films = FilmController::readFilms();
-
-        foreach ($films as $film) {
-            if ($film['year'] < $year)
-                $old_films[] = $film;
-        }
-        return view('films.list', ["films" => $old_films, "title" => $title]);
-    }
-
-    /**
-     * List films younger than input year
-     * If year is not informed, 2000 will be used as the criteria
-     *
-     * @param int|null $year
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function listNewFilms($year = null)
-    {
-        $new_films = [];
-        if (is_null($year))
-            $year = 2000;
-
-        $title = "List of New Movies (After $year)";
-        $films = ActorController::readFilms();
-
-        foreach ($films as $film) {
-            if ($film['year'] >= $year)
-                $new_films[] = $film;
-        }
-        return view('films.list', ["films" => $new_films, "title" => $title]);
-    }
 
     /**
      * List ALL movies or filter by year or genre.
@@ -99,133 +54,51 @@ class ActorController extends Controller
         return view("actors.list", ["actors" => $actors, "title" => $title]);
     }
 
-    /**
-     * List movies filtered by a specific year.
+ /**
+     * Delete an actor by ID using Query Builder within a transaction.
      *
-     * @param int $year
-     * @return \Illuminate\Contracts\View\View
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function listByYear($year)
+    public function deleteActor($id)
     {
-        $films_filtered = [];
+        try {
+            DB::beginTransaction();
 
-        $title = "List of All Movies by Year";
-        $films = FilmController::readFilms();
+            $deleted = DB::table('actors')->where('id', $id)->delete();
 
-        if (is_null($year))
-            return view('films.list', ["films" => $films, "title" => $title]);
-
-        foreach ($films as $film) {
-            if (!is_null($year) && $film['year'] == $year) {
-                $title = "List of All Movies Filtered by Year";
-                $films_filtered[] = $film;
+            if (!$deleted) {
+                throw new \Exception("Actor not found or couldn't be deleted");
             }
+
+            DB::commit();
+
+            return json_encode(['action' => 'delete', 'status' => true]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return json_encode(['action' => 'delete', 'status' => false, 'error' => $e->getMessage()], 404);
         }
-
-        return view("films.list", ["films" => $films_filtered, "title" => $title]);
     }
 
-    /**
-     * List movies filtered by a specific genre.
-     *
-     * @param string|null $genre
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function listByGenre($genre = null)
-    {
-        $films_filtered = [];
+    
 
-        $title = "List of All Movies";
-        $films = FilmController::readFilms();
-
-        if (is_null($genre))
-            return view('films.list', ["films" => $films, "title" => $title]);
-
-        foreach ($films as $film) {
-            if ((!is_null($genre)) && strtolower($film['genre']) == strtolower($genre)) {
-                $title = "List of All Movies Filtered by Category";
-                $films_filtered[] = $film;
-            }
-        }
-        return view("films.list", ["films" => $films_filtered, "title" => $title]);
-    }
-
-    /**
-     * Sort movies by year and display the sorted list.
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function sortByYear()
-    {
-        $title = "Movies Sorted by Year";
-
-        $films = FilmController::readFilms();
-
-        usort($films, function ($a, $b) {
-            return $a['year'] - $b['year'];
-        });
-
-        return view('films.list', ["films" => $films, "title" => $title]);
-    }
 
     /**
      * Count the number of movies and display the count.
      *
      * @return \Illuminate\Contracts\View\View
      */
-    public function countFilms()
+    public function countActors()
     {
-        $title = "Number of Movies";
-        $films = FilmController::readFilms();
+        $title = "Number of Actors";
+        $actors = ActorController::readActors();
 
-        $films = count($films);
+        $actors = count($actors);
 
-        return view('films.count', ["films" => $films, "title" => $title]);
+        return view('actors.count', ["actors" => $actors, "title" => $title]);
     }
 
-    /**
-     * Check if a movie exists based on user input.
-     *
-     * @param array $filmUser
-     * @return bool
-     */
-    public function isFilm($filmUser)
-    {
-        $films = FilmController::readFilms();
-        foreach ($films as $film) {
-            if ($film["name"] === $filmUser["name"]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Create a new movie and display the updated list of movies.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function createFilm(Request $request)
-    {
-        $title = "All Movies";
-        $films = FilmController::readFilms();
-        $filmUser = [
-            'name' => $request->input('name'),
-            'year' => $request->input('year'),
-            'genre' => $request->input('genre'),
-            'country' => $request->input('country'),
-            'duration' => $request->input('duration'),
-            'img_url' => $request->input('img_url'),
-        ];
-
-        if ($this->isFilm($filmUser)) {
-            return view('welcome', ["error" => "Movie already exists"]);
-        } else {
-            $films[] = $filmUser;
-            Storage::put("/public/films.json", json_encode($films));
-            $films = FilmController::readFilms();
-            return view('films.list', ["films" => $films, "title" => $title]);
-        }
-    }
+  
 }

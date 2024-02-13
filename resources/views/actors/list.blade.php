@@ -21,7 +21,7 @@ box-shadow: inset 0 20px 70px rgba(0, 0, 0, 0.9);
     {{ $title }}</h1>
 
 @if (empty($actors))
-    <FONT COLOR="red">No se ha encontrado ninguna película</FONT>
+    <FONT COLOR="red">No se ha encontrado ningun actor</FONT>
 @else
     <div align="center">
         <table border="1x solid"

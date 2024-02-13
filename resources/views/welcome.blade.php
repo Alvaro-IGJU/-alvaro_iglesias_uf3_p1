@@ -140,20 +140,32 @@
     <ul
         style="color: white; list-style:none; display: flex;justify-content: space-around; font-size: 2em; margin-top: 2%;font-family: 'Gill Sans', 'Gill Sans MT', Calii, 'Trebuchet MS', sans-serif; ">
         <li><a style="color: white;" href=/actorout/actors>Actores</a></li>
+        <li><a style="color: white;" href=/actorout/countActors>Contar actores</a></li>
 
     </ul>
     <h1 class="mt-5"
         style="color: white; font-family: 'Gill Sans', 'Gill Sans MT', Calii, 'Trebuchet MS', sans-serif; font-weight: bold; margin-left: 11%">
         Buscar actores por criterio</h1>
-    <form action="{{ route('listActorsByDecade') }}" method="get">
-        <select name="year">
-            @for ($year = 1900; $year < 2030; $year += 10)
-                <option value="{{ $year }}">{{ $year }}-{{ $year + 9 }}</option>
-            @endfor
+    <div
+        style="display: flex; margin-left: 11%; margin-right: 11%;flex-wrap: nowrap;flex-direction: column;color: white; justify-content: center; align-items:center">
 
-        </select>
-        <input type="submit">
-    </form>
+        <form action="{{ route('listActorsByDecade') }}" method="get" style="display: flex;justify-content: center; align-items:center;flex-direction: column;">
+            <select name="year"  style=" padding: 14px;
+            background-color: rgba(34, 34, 34, 0.767);
+            border: 1px solid rgb(167, 167, 167);
+            border-radius: 5px;
+            color: white; /* Color del texto */
+            -webkit-appearance: textfield; /* Para cambiar la apariencia en webkit */
+            appearance: textfield; /* Apariencia del input */">
+                @for ($year = 1900; $year < 2030; $year += 10)
+                    <option value="{{ $year }}">{{ $year }}-{{ $year + 9 }}</option>
+                @endfor
+    
+            </select>
+            <input type="submit"
+                style="height: 50px;width:450px; background: rgb(229, 9, 20); color: rgb(255, 255, 255);border-radius: 5px; border-style: none;font-family: 'Gill Sans', 'Gill Sans MT', Calii, 'Trebuchet MS', sans-serif; font-weight: bold;margin:10%">
+        </form></div>
+   
     <!-- Add Bootstrap JS and Popper.js (required for Bootstrap) -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
