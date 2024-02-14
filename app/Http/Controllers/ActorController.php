@@ -46,16 +46,16 @@ class ActorController extends Controller
     public function listActorsByDecade(Request $request)
     {
         $year = $request->input('year');
-        $endYear = $year +9;
+        $endYear = $year + 9;
         $title = "List of All Actors";
         $actors = DB::table('actors')->select('name', 'surname', 'birthdate', 'country', 'img_url')
-        ->whereBetween("birthdate", [$year . '-01-01', ($endYear) . '-12-31'])
-        ->get();
+            ->whereBetween("birthdate", [$year . '-01-01', ($endYear) . '-12-31'])
+            ->get();
         $actors = json_decode(json_encode($actors), true);
         return view("actors.list", ["actors" => $actors, "title" => $title]);
     }
 
- /**
+    /**
      * Delete an actor by ID using Query Builder within a transaction.
      *
      * @param int $id
@@ -83,7 +83,7 @@ class ActorController extends Controller
         }
     }
 
-    
+
 
 
     /**
@@ -101,21 +101,22 @@ class ActorController extends Controller
         return view('actors.count', ["actors" => $actors, "title" => $title]);
     }
 
-  
-    public function getFilms($id){
-        
+
+    public function getFilms($id)
+    {
         $actor = Actor::find($id);
         if ($actor) {
             $nombre = $actor->name;
             $apellido = $actor->surname;
             $films_actor = $actor->films->toArray();
-            $title = "Peliculas de ".$nombre." ".$apellido;
-        
-        } else {
-            $title= "El actor no fue encontrado.";
-            $films_actor = [];
-        }
-        return view("films.list", ["films" => $films_actor, "title" => $title]);
+        return json_encode(['actor'=>$nombre . " " . $apellido,'films' => $films_actor, 'status' => true]);
 
+        } else {
+            return json_encode(['status' => 404, 'error' => 'Actor not found'], 404);
+
+        }
+
+
+        
     }
 }
