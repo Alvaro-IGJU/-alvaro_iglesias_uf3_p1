@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Actor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -101,4 +102,20 @@ class ActorController extends Controller
     }
 
   
+    public function getFilms($id){
+        
+        $actor = Actor::find($id);
+        if ($actor) {
+            $nombre = $actor->name;
+            $apellido = $actor->surname;
+            $films_actor = $actor->films->toArray();
+            $title = "Peliculas de ".$nombre." ".$apellido;
+        
+        } else {
+            $title= "El actor no fue encontrado.";
+            $films_actor = [];
+        }
+        return view("films.list", ["films" => $films_actor, "title" => $title]);
+
+    }
 }
