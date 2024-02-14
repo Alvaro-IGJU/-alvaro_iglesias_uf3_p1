@@ -109,14 +109,13 @@ class ActorController extends Controller
             $nombre = $actor->name;
             $apellido = $actor->surname;
             $films_actor = $actor->films->toArray();
-        return json_encode(['actor'=>$nombre . " " . $apellido,'films' => $films_actor, 'status' => true]);
-
+            $films_actor = DB::table('films')
+                ->join('films_actors', 'films_actors.film_id', '=', 'films.id')
+                ->where('films_actors.actor_id', '=', $id)
+                ->select('films.*')->get();
+            return json_encode(['actor' => $nombre . " " . $apellido, 'films' => $films_actor, 'status' => true]);
         } else {
             return json_encode(['status' => 404, 'error' => 'Actor not found'], 404);
-
         }
-
-
-        
     }
 }
