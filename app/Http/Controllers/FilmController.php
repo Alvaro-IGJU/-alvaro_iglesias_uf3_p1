@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Film;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 class FilmController extends Controller
 {
@@ -15,15 +15,12 @@ class FilmController extends Controller
      */
     public static function readFilms(): array
     {
-        // Leer las películas desde la base de datos
-        $films_bdd = DB::table('films')->select('name', 'year', 'genre', 'country', 'duration', 'img_url')->get()->toArray();
-        $films_bdd = json_decode(json_encode($films_bdd), true);
-        // Leer las películas desde el archivo JSON
-        $films_json = json_decode(Storage::get('/public/films.json'), true);
-
-        // Combinar los datos de ambas fuentes
+        $films_bdd = Film::select('name', 'year', 'genre', 'country', 'duration', 'img_url')->get()->toArray();
+        
+        $films_json = json_decode(Storage::get('public/films.json'), true);
+    
         $films = array_merge($films_bdd, $films_json);
-
+    
         return $films;
     }
 
@@ -184,11 +181,9 @@ class FilmController extends Controller
     public function countFilms()
     {
         $title = "Number of Movies";
-        $films = FilmController::readFilms();
-
-        $films = count($films);
-
-        return view('films.count', ["films" => $films, "title" => $title]);
+        $filmsCount = Film::count();
+    
+        return view('films.count', ["films" => $filmsCount, "title" => $title]);
     }
 
     /**
@@ -217,11 +212,11 @@ class FilmController extends Controller
     public function createFilm(Request $request)
     {
         $dataSource = env('DATA_SOURCE', 'database');
-
+    
         $title = "All Movies";
-
+    
         $films = $this->readFilms();
-
+    
         $filmUser = [
             'name' => $request->input('name'),
             'year' => $request->input('year'),
@@ -230,19 +225,20 @@ class FilmController extends Controller
             'duration' => $request->input('duration'),
             'img_url' => $request->input('img_url'),
         ];
-
+    
         if ($this->isFilm($filmUser)) {
             return view('welcome', ["error" => "Movie already exists"]);
         } else {
             if ($dataSource === 'json') {
                 $films[] = $filmUser;
-                Storage::put("/public/films.json", json_encode($films));
+                Storage::put("public/films.json", json_encode($films));
             } else {
-                DB::table('films')->insert($filmUser);
+                // Usando Eloquent para insertar un nuevo registro
+                Film::create($filmUser);
             }
-
+    
             $films = $this->readFilms();
-
+    
             return view('films.list', ["films" => $films, "title" => $title]);
         }
     }

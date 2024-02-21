@@ -16,10 +16,9 @@ class ActorController extends Controller
      */
     public function readActors()
     {
-        // Utilizamos el Query Builder para realizar la consulta
-        $actors = DB::table('actors')->select('name', 'surname', 'birthdate', 'country', 'img_url')->get();
-        // Retornamos los resultados
-        return json_decode(json_encode($actors), true);
+        $actors = Actor::select('name', 'surname', 'birthdate', 'country', 'img_url')->get();
+
+        return $actors->toArray();
     }
 
 
@@ -66,19 +65,21 @@ class ActorController extends Controller
         try {
             DB::beginTransaction();
 
-            $deleted = DB::table('actors')->where('id', $id)->delete();
+            // Encuentra el actor usando Eloquent
+            $actor = Actor::find($id);
 
-            if (!$deleted) {
-                throw new \Exception("Actor not found or couldn't be deleted");
+            if (!$actor) {
+                throw new \Exception("Actor not found");
             }
+
+            // Elimina el actor
+            $actor->delete();
 
             DB::commit();
 
             return json_encode(['action' => 'delete', 'status' => true]);
         } catch (\Exception $e) {
-
             DB::rollBack();
-
             return json_encode(['action' => 'delete', 'status' => false, 'error' => $e->getMessage()], 404);
         }
     }
@@ -94,28 +95,25 @@ class ActorController extends Controller
     public function countActors()
     {
         $title = "Number of Actors";
-        $actors = ActorController::readActors();
-
-        $actors = count($actors);
-
-        return view('actors.count', ["actors" => $actors, "title" => $title]);
+        $actorsCount = Actor::count();
+    
+        return view('actors.count', ["actors" => $actorsCount, "title" => $title]);
     }
 
 
     public function getFilms($id)
     {
-        $actor = Actor::find($id);
-        if ($actor) {
-            $nombre = $actor->name;
-            $apellido = $actor->surname;
-            $films_actor = $actor->films->toArray();
-            $films_actor = DB::table('films')
-                ->join('films_actors', 'films_actors.film_id', '=', 'films.id')
-                ->where('films_actors.actor_id', '=', $id)
-                ->select('films.*')->get();
-            return json_encode(['actor' => $nombre . " " . $apellido, 'films' => $films_actor, 'status' => true]);
-        } else {
-            return json_encode(['status' => 404, 'error' => 'Actor not found'], 404);
+        try {
+            $actor = Actor::findOrFail($id); 
+            $films = $actor->films;
+    
+            return response()->json([
+                'actor' => $actor->name . " " . $actor->surname,
+                'films' => $films,
+                'status' => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 404, 'error' => 'Actor not found'], 404);
         }
     }
 }
